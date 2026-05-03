@@ -12,6 +12,16 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^6.2.1"
+    "@astrojs/db": "^0.21.1",
+    "@astrojs/node": "^10.0.6",
+    "@astrojs/starlight": "^0.38.4",
+    "@tailwindcss/vite": "^4.2.4",
+    "astro": "^6.2.1",
+    "bcryptjs": "^3.0.3",
+    "lucia": "^3.2.2",
+    "lucia-adapter-astrodb": "^0.2.0",
+    "oslo": "^1.2.1",
+    "sweetalert2": "^11.26.24",
+    "tailwindcss": "^4.2.4"
   }
 }

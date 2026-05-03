@@ -1,0 +1,64 @@
+---
+import MainLayout from '../layouts/MainLayout.astro';
+
+const { user } = Astro.locals;
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+---
+
+<MainLayout>
+  <div class="flex justify-center items-center h-[600px] bg-gray-200">
+    <div class="w-96 bg-white shadow-xl rounded p-6 text-center">
+      <div class="w-24 h-24 mx-auto rounded-full bg-gray-300 flex items-center justify-center text-2xl font-bold text-white">
+        {user.name.substring(0,2).toUpperCase()}
+      </div>
+
+      <h2 class="text-2xl mt-4">{user.name}</h2>
+      <p class="text-gray-500">{user.email}</p>
+
+      <p class="mt-2 text-green-500">
+        Usuario autenticado
+      </p>
+
+      <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-100 italic text-sm text-gray-600">
+        <p id="quote-text">Cargando frase del día...</p>
+        <p id="quote-author" class="mt-2 font-bold"></p>
+      </div>
+
+      <button id="logout" class="mt-4 inline-block text-red-500 cursor-pointer">
+        Cerrar sesión
+      </button>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  import { actions } from 'astro:actions';
+
+  // Consumo de API Externa
+  async function fetchQuote() {
+    try {
+      const response = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://zenquotes.io/api/random'));
+      const data = await response.json();
+      const quote = JSON.parse(data.contents)[0];
+      
+      const textElem = document.getElementById('quote-text');
+      const authorElem = document.getElementById('quote-author');
+      
+      if (textElem) textElem.innerText = `"${quote.q}"`;
+      if (authorElem) authorElem.innerText = `- ${quote.a}`;
+    } catch (error) {
+      console.error('Error fetching quote:', error);
+    }
+  }
+
+  fetchQuote();
+  
+  const logoutBtn = document.querySelector('#logout');
+  logoutBtn?.addEventListener('click', async () => {
+    await actions.auth.logoutUser();
+    window.location.href = '/login';
+  });
+</script>

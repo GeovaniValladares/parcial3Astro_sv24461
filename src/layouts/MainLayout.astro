@@ -1,0 +1,28 @@
+---
+import Navbar from '../components/shared/Navbar.astro';
+import '../styles/global.css'
+
+interface Props {
+  title?: string;
+  maxWidth?: string;
+}
+
+const { title = 'Auth Astro App', maxWidth = 'max-w-3xl' } = Astro.props;
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <Navbar />
+
+    <main class={`container m-auto px-5 ${maxWidth}`}>
+      <slot />
+    </main>
+  </body>
+</html>

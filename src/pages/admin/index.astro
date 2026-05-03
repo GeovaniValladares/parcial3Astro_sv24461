@@ -1,0 +1,227 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import { db, User, count, desc } from "astro:db";
+
+const { user: currentUser } = Astro.locals;
+
+// Redirigir si no es admin (ya lo hace el middleware, pero por si acaso)
+if (!currentUser || currentUser.role !== 'admin') {
+  return Astro.redirect("/protected");
+}
+
+// Configuración de paginación
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get("page") || "1");
+const limit = 5;
+const offset = (page - 1) * limit;
+
+// Obtener total de usuarios
+const [totalCountResult] = await db.select({ value: count() }).from(User);
+const totalUsers = totalCountResult.value;
+const totalPages = Math.ceil(totalUsers / limit);
+
+// Obtener usuarios paginados
+const users = await db.select().from(User).orderBy(desc(User.createdAt)).limit(limit).offset(offset);
+---
+
+<MainLayout title="Panel de Administración" maxWidth="max-w-6xl">
+  <div class="py-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Listado de Usuarios</h2>
+      <button id="btn-add-user" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 font-bold">
+        + Agregar usuario
+      </button>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+      <table class="min-w-full leading-normal">
+        <thead>
+          <tr class="bg-gray-100 text-left text-gray-600 font-bold text-sm uppercase tracking-wider">
+            <th class="px-5 py-3 border-b-2">Nombre</th>
+            <th class="px-5 py-3 border-b-2">Email</th>
+            <th class="px-5 py-3 border-b-2">Rol</th>
+            <th class="px-5 py-3 border-b-2">Creado</th>
+            <th class="px-5 py-3 border-b-2 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr class="border-b border-gray-200 hover:bg-gray-50">
+              <td class="px-5 py-4 text-sm">{user.name}</td>
+              <td class="px-5 py-4 text-sm">{user.email}</td>
+              <td class="px-5 py-4 text-sm">
+                <span class={`px-2 py-1 rounded text-xs font-bold ${user.role === 'admin' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                  {user.role}
+                </span>
+              </td>
+              <td class="px-5 py-4 text-sm">
+                {user.createdAt.toLocaleDateString()}
+              </td>
+              <td class="px-5 py-4 text-sm text-center space-x-2">
+                <button 
+                  class="btn-edit text-blue-500 hover:text-blue-700 font-bold"
+                  data-user={JSON.stringify(user)}
+                >
+                  Editar
+                </button>
+                {currentUser.id !== user.id && (
+                  <button 
+                    class="btn-delete text-red-500 hover:text-red-700 font-bold"
+                    data-id={user.id}
+                  >
+                    Eliminar
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    {/* Paginación */}
+    <div class="mt-6 flex justify-between items-center bg-white p-4 rounded-lg shadow">
+      <span class="text-sm text-gray-600">
+        Mostrando {users.length} de {totalUsers} usuarios (Página {page} de {totalPages})
+      </span>
+      <div class="flex space-x-2">
+        {page > 1 && (
+          <a href={`?page=${page - 1}`} class="px-4 py-2 border rounded hover:bg-gray-100">Anterior</a>
+        )}
+        
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+          <a 
+            href={`?page=${p}`} 
+            class={`px-4 py-2 border rounded ${p === page ? 'bg-green-500 text-white' : 'hover:bg-gray-100'}`}
+          >
+            {p}
+          </a>
+        ))}
+
+        {page < totalPages && (
+          <a href={`?page=${page + 1}`} class="px-4 py-2 border rounded hover:bg-gray-100">Siguiente</a>
+        )}
+      </div>
+    </div>
+  </div>
+</MainLayout>
+
+<script>
+  import { actions } from "astro:actions";
+  import Swal from "sweetalert2";
+
+  // Botón Agregar Usuario
+  document.querySelector("#btn-add-user")?.addEventListener("click", async () => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Agregar Nuevo Usuario',
+      html:
+        '<input id="swal-name" class="swal2-input" placeholder="Nombre">' +
+        '<input id="swal-email" type="email" class="swal2-input" placeholder="Email">' +
+        '<input id="swal-password" type="password" class="swal2-input" placeholder="Contraseña">' +
+        '<select id="swal-role" class="swal2-input">' +
+          '<option value="user">User</option>' +
+          '<option value="admin">Admin</option>' +
+        '</select>',
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Guardar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const name = (document.getElementById('swal-name') as HTMLInputElement).value;
+        const email = (document.getElementById('swal-email') as HTMLInputElement).value;
+        const password = (document.getElementById('swal-password') as HTMLInputElement).value;
+        const role = (document.getElementById('swal-role') as HTMLSelectElement).value;
+        
+        if (!name || !email || !password) {
+          Swal.showValidationMessage('Todos los campos son obligatorios');
+          return false;
+        }
+        return { name, email, password, role };
+      }
+    });
+
+    if (formValues) {
+      const { error } = await actions.admin.createUser(formValues);
+      if (error) {
+        Swal.fire('Error', error.message, 'error');
+      } else {
+        Swal.fire('¡Éxito!', 'Usuario creado correctamente', 'success').then(() => {
+          window.location.reload();
+        });
+      }
+    }
+  });
+
+  // Botones Editar
+  document.querySelectorAll(".btn-edit").forEach(button => {
+    button.addEventListener("click", async (e) => {
+      const userData = JSON.parse((e.currentTarget as HTMLButtonElement).dataset.user!);
+      
+      const { value: formValues } = await Swal.fire({
+        title: 'Editar Usuario',
+        html:
+          `<input id="swal-name" class="swal2-input" placeholder="Nombre" value="${userData.name}">` +
+          `<input id="swal-email" type="email" class="swal2-input" placeholder="Email" value="${userData.email}">` +
+          '<select id="swal-role" class="swal2-input">' +
+            `<option value="user" ${userData.role === 'user' ? 'selected' : ''}>User</option>` +
+            `<option value="admin" ${userData.role === 'admin' ? 'selected' : ''}>Admin</option>` +
+          '</select>',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Actualizar',
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+          const name = (document.getElementById('swal-name') as HTMLInputElement).value;
+          const email = (document.getElementById('swal-email') as HTMLInputElement).value;
+          const role = (document.getElementById('swal-role') as HTMLSelectElement).value;
+          
+          if (!name || !email) {
+            Swal.showValidationMessage('Nombre y email son obligatorios');
+            return false;
+          }
+          return { id: userData.id, name, email, role };
+        }
+      });
+
+      if (formValues) {
+        const { error } = await actions.admin.updateUser(formValues);
+        if (error) {
+          Swal.fire('Error', error.message, 'error');
+        } else {
+          Swal.fire('¡Éxito!', 'Usuario actualizado correctamente', 'success').then(() => {
+            window.location.reload();
+          });
+        }
+      }
+    });
+  });
+
+  // Botones Eliminar
+  document.querySelectorAll(".btn-delete").forEach(button => {
+    button.addEventListener("click", async (e) => {
+      const userId = (e.currentTarget as HTMLButtonElement).dataset.id!;
+      
+      const result = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esta acción no se puede deshacer",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (result.isConfirmed) {
+        const { error } = await actions.admin.deleteUser({ id: userId });
+        if (error) {
+          Swal.fire('Error', error.message, 'error');
+        } else {
+          Swal.fire('Eliminado', 'El usuario ha sido eliminado', 'success').then(() => {
+            window.location.reload();
+          });
+        }
+      }
+    });
+  });
+</script>
