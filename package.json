@@ -7,12 +7,13 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build --remote",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/db": "^0.21.1",
+    "@astrojs/netlify": "^7.0.8",
     "@astrojs/node": "^10.0.6",
     "@astrojs/starlight": "^0.38.4",
     "@tailwindcss/vite": "^4.2.4",

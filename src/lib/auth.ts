@@ -7,7 +7,7 @@ const adapter = new AstroDBAdapter(db, Session, User);
 export const lucia = new Lucia(adapter, {
 	sessionCookie: {
 		attributes: {
-			secure: import.meta.env.PROD
+			secure: true // Forzado a true para producción en Netlify (HTTPS)
 		}
 	},
     getUserAttributes: (attributes) => {

@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 import db from '@astrojs/db';
 import tailwindcss from '@tailwindcss/vite';
-import node from '@astrojs/node';
+import netlify from '@astrojs/netlify';
 import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
@@ -10,7 +10,7 @@ export default defineConfig({
   integrations: [
     db(),
     starlight({
-      title: 'Documentación',
+      title: 'Documentacion',
       defaultLocale: 'root',
       social: [
         { label: 'GitHub', href: 'https://github.com/JoseGeovaniSanchezVa/astro-lucia-auth', icon: 'github' }
@@ -29,9 +29,7 @@ export default defineConfig({
     }),
   ],
   output: 'server',
-  adapter: node({
-    mode: 'standalone'
-  }),
+  adapter: netlify(),
 
   vite: {
     plugins: [tailwindcss()],
