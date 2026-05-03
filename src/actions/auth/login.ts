@@ -2,7 +2,7 @@ import { defineAction } from "astro:actions";
 import { z } from "astro:schema";
 import { db, User, eq } from "astro:db";
 import bcrypt from "bcryptjs";
-import { lucia } from "../../lib/auth";
+import { getLucia } from "../../lib/auth";
 
 export const loginUser = defineAction({
   input: z.object({
@@ -11,6 +11,7 @@ export const loginUser = defineAction({
   }),
 
   handler: async ({ email, password }, { cookies }) => {
+    const lucia = getLucia();
     // 1. Buscar al usuario
     const [user] = await db.select().from(User).where(eq(User.email, email));
 

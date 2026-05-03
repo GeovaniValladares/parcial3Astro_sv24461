@@ -2,26 +2,32 @@ import { Lucia } from "lucia";
 import { AstroDBAdapter } from "lucia-adapter-astrodb";
 import { db, Session, User } from "astro:db";
 
-const adapter = new AstroDBAdapter(db, Session, User);
+let luciaInstance: Lucia;
 
-export const lucia = new Lucia(adapter, {
-	sessionCookie: {
-		attributes: {
-			secure: true // Forzado a true para producción en Netlify (HTTPS)
-		}
-	},
-    getUserAttributes: (attributes) => {
+export function getLucia() {
+  if (!luciaInstance) {
+    const adapter = new AstroDBAdapter(db, Session, User);
+    luciaInstance = new Lucia(adapter, {
+      sessionCookie: {
+        attributes: {
+          secure: true // Forzado para Netlify (HTTPS)
+        }
+      },
+      getUserAttributes: (attributes) => {
         return {
-            name: attributes.name,
-            email: attributes.email,
-            role: attributes.role
+          name: attributes.name,
+          email: attributes.email,
+          role: attributes.role
         };
-    }
-});
+      }
+    });
+  }
+  return luciaInstance;
+}
 
 declare module "lucia" {
 	interface Register {
-		Lucia: typeof lucia;
+		Lucia: ReturnType<typeof getLucia>;
         DatabaseUserAttributes: DatabaseUserAttributes;
 	}
 }

@@ -1,8 +1,9 @@
 import { defineAction } from "astro:actions";
-import { lucia } from "../../lib/auth";
+import { getLucia } from "../../lib/auth";
 
 export const logoutUser = defineAction({
   handler: async (_, { cookies, locals }) => {
+    const lucia = getLucia();
     // 1. Verificar si hay una sesión activa
     const session = locals.session;
     if (!session) {
