@@ -1,6 +1,5 @@
 import { defineAction } from "astro:actions";
 import { z } from "astro:schema";
-import { db, User, eq } from "astro:db";
 import bcrypt from "bcryptjs";
 import { getLucia } from "../../lib/auth";
 
@@ -13,7 +12,8 @@ export const registerUser = defineAction({
   }),
 
   handler: async (data, { cookies }) => {
-    const lucia = getLucia();
+    const { db, User, eq } = await import("astro:db");
+    const lucia = await getLucia();
     // 1. Verificar si el usuario ya existe
     const [existingUser] = await db.select().from(User).where(eq(User.email, data.email));
     if (existingUser) {

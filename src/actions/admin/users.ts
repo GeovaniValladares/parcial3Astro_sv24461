@@ -1,6 +1,5 @@
 import { defineAction } from "astro:actions";
 import { z } from "astro:schema";
-import { db, User, eq } from "astro:db";
 import bcrypt from "bcryptjs";
 
 export const adminUsers = {
@@ -15,6 +14,8 @@ export const adminUsers = {
       if (!locals.user || locals.user.role !== 'admin') {
         throw new Error("No autorizado");
       }
+      
+      const { db, User, eq } = await import("astro:db");
 
       const [existingUser] = await db.select().from(User).where(eq(User.email, data.email));
       if (existingUser) {
@@ -49,6 +50,8 @@ export const adminUsers = {
         throw new Error("No autorizado");
       }
 
+      const { db, User, eq } = await import("astro:db");
+
       await db.update(User)
         .set({
           name: data.name,
@@ -69,6 +72,8 @@ export const adminUsers = {
       if (!locals.user || locals.user.role !== 'admin') {
         throw new Error("No autorizado");
       }
+
+      const { db, User, eq } = await import("astro:db");
 
       // Evitar que un admin se elimine a sí mismo
       if (locals.user.id === id) {

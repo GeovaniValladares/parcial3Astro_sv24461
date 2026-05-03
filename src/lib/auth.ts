@@ -1,11 +1,13 @@
 import { Lucia } from "lucia";
-import { AstroDBAdapter } from "lucia-adapter-astrodb";
-import { db, Session, User } from "astro:db";
 
 let luciaInstance: Lucia;
 
-export function getLucia() {
+export async function getLucia() {
   if (!luciaInstance) {
+    // Importaciones dinámicas para evitar inicializar la DB durante el build/prerender
+    const { db, Session, User } = await import("astro:db");
+    const { AstroDBAdapter } = await import("lucia-adapter-astrodb");
+
     const adapter = new AstroDBAdapter(db, Session, User);
     luciaInstance = new Lucia(adapter, {
       sessionCookie: {
@@ -13,7 +15,7 @@ export function getLucia() {
           secure: true // Forzado para Netlify (HTTPS)
         }
       },
-      getUserAttributes: (attributes) => {
+      getUserAttributes: (attributes: any) => {
         return {
           name: attributes.name,
           email: attributes.email,
@@ -27,7 +29,7 @@ export function getLucia() {
 
 declare module "lucia" {
 	interface Register {
-		Lucia: ReturnType<typeof getLucia>;
+		Lucia: ReturnType<typeof getLucia> extends Promise<infer T> ? T : never;
         DatabaseUserAttributes: DatabaseUserAttributes;
 	}
 }

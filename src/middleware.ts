@@ -2,7 +2,18 @@ import { getLucia } from "./lib/auth";
 import { defineMiddleware } from "astro:middleware";
 
 export const onRequest = defineMiddleware(async (context, next) => {
-    const lucia = getLucia();
+    let lucia;
+    try {
+        lucia = await getLucia();
+    } catch (e) {
+        // Durante el build/prerender en Netlify, si la URL de la DB no es válida, 
+        // evitamos que el build falle por esta razón.
+        if (import.meta.env.PROD) {
+            console.warn("Middleware: Saltando validación de sesión (posible fase de build)");
+            return next();
+        }
+        throw e;
+    }
 	const sessionId = context.cookies.get(lucia.sessionCookieName)?.value ?? null;
 	if (!sessionId) {
 		context.locals.user = null;

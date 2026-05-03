@@ -3,7 +3,7 @@ import { getLucia } from "../../lib/auth";
 
 export const logoutUser = defineAction({
   handler: async (_, { cookies, locals }) => {
-    const lucia = getLucia();
+    const lucia = await getLucia();
     // 1. Verificar si hay una sesión activa
     const session = locals.session;
     if (!session) {
