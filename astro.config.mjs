@@ -19,10 +19,10 @@ export default defineConfig({
         {
           label: 'Guía del Proyecto',
           items: [
-            { label: 'Introducción', link: '/intro' },
-            { label: 'Arquitectura', link: '/arquitectura' },
-            { label: 'Base de Datos', link: '/database' },
-            { label: 'Autenticación', link: '/auth' },
+            { label: 'Introducción', link: '/manual/intro' },
+            { label: 'Arquitectura', link: '/manual/arquitectura' },
+            { label: 'Base de Datos', link: '/manual/database' },
+            { label: 'Autenticación', link: '/manual/auth' },
           ],
         },
       ],
