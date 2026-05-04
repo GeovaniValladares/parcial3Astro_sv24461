@@ -4,7 +4,12 @@ let luciaInstance: Lucia;
 
 export async function getLucia() {
   if (!luciaInstance) {
-    // Importaciones dinámicas para evitar inicializar la DB durante el build/prerender
+    // Verificación de seguridad para producción
+    if (import.meta.env.PROD && !import.meta.env.ASTRO_DB_REMOTE_URL) {
+        throw new Error("Falta la variable ASTRO_DB_REMOTE_URL en producción");
+    }
+
+    // Importaciones dinámicas
     const { db, Session, User } = await import("astro:db");
     const { AstroDBAdapter } = await import("lucia-adapter-astrodb");
 

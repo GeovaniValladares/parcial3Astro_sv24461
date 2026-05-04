@@ -14,7 +14,7 @@ const User = defineTable({
     email: column.text({ unique: true }),
     password: column.text(),
     role: column.text({ references: () => Role.columns.id }),
-    createdAt: column.date({ default: new Date() }),
+    createdAt: column.date(),
   }
 });
 
