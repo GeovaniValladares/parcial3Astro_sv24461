@@ -1,7 +1,9 @@
 ---
-import MainLayout from '../layouts/MainLayout.astro';
----
+const { user } = Astro.locals;
 
-<MainLayout>
-  <h1 class="text-3xl">Home Page</h1>
-</MainLayout>
+if (user) {
+  return Astro.redirect(user.role === 'admin' ? "/admin" : "/protected");
+}
+
+return Astro.redirect("/login");
+---
