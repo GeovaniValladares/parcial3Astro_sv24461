@@ -1,31 +1,23 @@
 ---
-title: Base de Datos
-description: Esquema y configuración de Astro DB.
+title: Base de Datos (Astro DB + Turso)
+description: Configuración del esquema y persistencia en la nube.
 ---
 
-El proyecto utiliza **Astro DB** con un motor libSQL. El esquema está definido para soportar roles y gestión de usuarios.
+El proyecto utiliza **Astro DB** sincronizado con **Turso** para persistencia en producción.
 
-### Tablas Principales
+### Modelo de Datos
+El esquema (`db/config.ts`) define tres tablas principales:
 
-#### Role
-Almacena los tipos de roles permitidos en el sistema.
-- `id`: Texto (PK)
-- `name`: Texto (Único)
+1.  **Role:** Almacena los roles del sistema (`admin`, `user`).
+2.  **User:** Información de perfiles, incluyendo contraseña hasheada y fecha de creación.
+3.  **Session:** Almacén de sesiones activas gestionadas por Lucia.
 
-#### User
-Almacena la información de los usuarios registrados.
-- `id`: Texto (PK)
-- `name`: Texto
-- `email`: Texto (Único)
-- `password`: Texto (Hasheada con bcrypt)
-- `role`: Texto (FK a Role)
-- `createdAt`: Fecha de creación
+### Sincronización con Turso
+En producción, el sistema se conecta a un servidor de Turso mediante las variables:
+- `ASTRO_DB_REMOTE_URL`
+- `ASTRO_DB_APP_TOKEN`
 
-#### Session
-Gestionada por Lucía Auth para el control de sesiones activas.
-- `id`: Texto (PK)
-- `expiresAt`: Fecha de expiración
-- `userId`: Texto (FK a User)
-
-### Seed de Datos
-El sistema incluye un script de seed que inicializa los roles (`admin`, `user`) y crea un usuario administrador por defecto: `admin@gmail.com`.
+### Comandos Útiles
+- `npm run dev`: Desarrollo con base de datos local SQLite.
+- `npx astro db push --remote`: Sincroniza cambios del esquema a Turso.
+- `npx astro db execute db/seed.ts --remote`: Pobla la base de datos remota con datos iniciales (Admin por defecto).

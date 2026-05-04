@@ -23,6 +23,7 @@ export default defineConfig({
             { label: 'Arquitectura', link: '/manual/arquitectura' },
             { label: 'Base de Datos', link: '/manual/database' },
             { label: 'Autenticación', link: '/manual/auth' },
+            { label: 'Funcionalidades', link: '/manual/api' },
           ],
         },
       ],

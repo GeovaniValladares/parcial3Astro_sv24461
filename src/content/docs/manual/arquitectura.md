@@ -1,20 +1,20 @@
 ---
-title: Arquitectura del Sistema
-description: Detalles técnicos de la estructura del proyecto.
+title: Arquitectura y Estructura
+description: Organización del código y flujo de la aplicación.
 ---
 
-La aplicación sigue una arquitectura basada en componentes y rutas de Astro, utilizando el enfoque de **Server-Side Rendering (SSR)** para la gestión de sesiones y datos.
+La aplicación utiliza un enfoque de **Server-Side Rendering (SSR)** para garantizar la seguridad en la gestión de sesiones y la eficiencia en las consultas a la base de datos.
 
-### Estructura de Carpetas Principal
-- `src/actions/`: Contiene la lógica de negocio (Astro Actions) para autenticación y administración.
-- `src/components/`: Componentes reutilizables de la interfaz.
-- `src/layouts/`: Plantillas base para las páginas (Auth y Main).
-- `src/lib/`: Configuración de librerías externas (Lucia Auth).
-- `src/middleware.ts`: Interceptor de peticiones para validación de sesiones y protección de rutas.
-- `src/pages/`: Rutas de la aplicación (Login, Registro, Admin, Protected).
+### Organización de Carpetas
+- `src/actions/`: Lógica de servidor (Astro Actions) para manejar Auth y CRUD de usuarios.
+- `src/components/`: Componentes compartidos como el Navbar responsivo.
+- `src/content/`: Archivos Markdown de este manual gestionados por Starlight.
+- `src/lib/`: Configuraciones centrales (inicialización de Lucia Auth).
+- `src/middleware.ts`: Interceptor global que protege rutas y valida sesiones.
+- `src/pages/`:
+    - `admin/`: Panel de administración protegido.
+    - `login.astro` / `register.astro`: Gestión de acceso.
+    - `protected.astro`: Zona privada para usuarios autenticados.
 
-### Flujo de Datos
-1. El usuario interactúa con los formularios.
-2. Las **Astro Actions** procesan la solicitud en el servidor.
-3. Se interactúa con **Astro DB** para persistencia.
-4. Se retorna una respuesta que el cliente maneja (usando SweetAlert2 para feedback).
+### Patrón de Inicialización Perezosa (Lazy Init)
+Para evitar errores de conexión durante la fase de compilación (build), el sistema implementa una función `getLucia()` que importa dinámicamente las dependencias de la base de datos solo cuando se recibe una petición real en el servidor.

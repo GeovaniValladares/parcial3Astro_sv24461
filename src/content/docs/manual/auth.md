@@ -1,20 +1,19 @@
 ---
 title: Autenticación y Seguridad
-description: Implementación de Lucía Auth y Middlewares.
+description: Detalles de la implementación de seguridad.
 ---
 
-### Lucía Auth
-Se utiliza **Lucía Auth** como motor de autenticación. La configuración se encuentra en `src/lib/auth.ts`.
+### Gestión de Sesiones (Lucia Auth)
+Lucia se encarga de crear cookies de sesión seguras (`httpOnly`). La instancia se configura en `src/lib/auth.ts` exponiendo los atributos:
+- Nombre del usuario.
+- Correo electrónico.
+- **Rol asignado** (vital para el control de acceso).
 
-- **Adaptador:** AstroDBAdapter.
-- **Atributos:** Se exponen `name`, `email` y `role` en el objeto de usuario de la sesión.
+### Middleware de Protección
+El archivo `src/middleware.ts` actúa como un guardián de rutas:
+- **Públicas:** Solo accesibles si NO hay sesión (Login/Register).
+- **Protegidas:** Requieren cualquier sesión válida (`/protected`).
+- **Admin:** Requieren estrictamente el rol `admin` (`/admin`).
 
-### Middleware
-El archivo `src/middleware.ts` es el encargado de la seguridad perimetral:
-1. Valida la cookie de sesión en cada petición.
-2. Expone `user` y `session` en `Astro.locals`.
-3. Redirige usuarios no autenticados de rutas protegidas (`/protected`, `/admin`).
-4. Protege el panel de administración, permitiendo el acceso únicamente a usuarios con el rol `admin`.
-
-### Hasheo de Contraseñas
-Se utiliza la librería `bcryptjs` con un factor de costo de 10 para asegurar que las contraseñas no se almacenen en texto plano.
+### Seguridad de Contraseñas
+Nunca se almacenan contraseñas en texto plano. Se utiliza **bcryptjs** para el hasheo antes de guardar en la base de datos y para la validación durante el inicio de sesión.
